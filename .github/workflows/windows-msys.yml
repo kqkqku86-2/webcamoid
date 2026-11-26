@@ -8,23 +8,15 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
-    strategy:
-      max-parallel: 10
-      fail-fast: false
-      matrix:
-       include:
-         - target_arch: x86_64
-           pkg_prefix: mingw-w64-x86_64
-           compiler: gcc
-           upload: 1
     env:
-      TARGET_ARCH: ${{ matrix.target_arch }}
-      COMPILER: ${{ matrix.compiler }}
-      UPLOAD: ${{ matrix.upload }}
+      TARGET_ARCH: x86_64
+      COMPILER: gcc
+      UPLOAD: 1
+      QT_VERSION: 5.15.2
     steps:
     - uses: actions/checkout@v6
       with:
-        ref: 8.8.0
+        ref: 9.1.1
         submodules: true
     - uses: msys2/setup-msys2@v2
       with:
@@ -38,40 +30,35 @@ jobs:
           ninja
           pkgconf
           python3
+          python3-pip
           unzip
-          ${{ matrix.pkg_prefix }}-ccache
-          ${{ matrix.pkg_prefix }}-gcc
-          ${{ matrix.pkg_prefix }}-cmake
-          ${{ matrix.pkg_prefix }}-ffmpeg
-          ${{ matrix.pkg_prefix }}-ninja
-          ${{ matrix.pkg_prefix }}-pkgconf
-          ${{ matrix.pkg_prefix }}-portaudio
-          ${{ matrix.pkg_prefix }}-qt5-declarative
-          ${{ matrix.pkg_prefix }}-qt5-multimedia
-          ${{ matrix.pkg_prefix }}-qt5-quickcontrols2
-          ${{ matrix.pkg_prefix }}-qt5-svg
-          ${{ matrix.pkg_prefix }}-qt5-tools
+          mingw-w64-x86_64-ccache
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ffmpeg
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-pkgconf
+          mingw-w64-x86_64-portaudio
+    - name: Install Qt 5.15.2 via aqtinstall
+      run: |
+        pip install --break-system-packages aqtinstall
+        python3 -m aqt install-qt windows desktop 5.15.2 win64_mingw81 -O /c/Qt
+        echo "/c/Qt/5.15.2/mingw81_64/bin" >> $GITHUB_PATH
+        echo "QTDIR=/c/Qt/5.15.2/mingw81_64" >> $GITHUB_ENV
+        echo "CMAKE_PREFIX_PATH=/c/Qt/5.15.2/mingw81_64" >> $GITHUB_ENV
     - name: Install dependencies
       run: ./ports/ci/windows-msys/install_deps.sh
-    - name: Release Build
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      run: ./ports/ci/windows-msys/build.sh
-    - name: Release Deploy
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      run: ./ports/ci/windows-msys/deploy.sh
     - name: Daily Build
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       env:
         DAILY_BUILD: 1
       run: ./ports/ci/windows-msys/build.sh
     - name: Daily Deploy
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       env:
         DAILY_BUILD: 1
       run: ./ports/ci/windows-msys/deploy.sh
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: webcamoid-win7-${{ matrix.target_arch }}
+        name: webcamoid-win7-x86_64
         path: webcamoid-packages/windows/*
         if-no-files-found: error
