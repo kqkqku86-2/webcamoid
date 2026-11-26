@@ -40,12 +40,13 @@ jobs:
           mingw-w64-x86_64-pkgconf
           mingw-w64-x86_64-portaudio
     - name: Install Qt 5.15.2 via aqtinstall
+      shell: pwsh
       run: |
-        pip install --break-system-packages aqtinstall
-        python3 -m aqt install-qt windows desktop 5.15.2 win64_mingw81 -O /c/Qt
-        echo "/c/Qt/5.15.2/mingw81_64/bin" >> $GITHUB_PATH
-        echo "QTDIR=/c/Qt/5.15.2/mingw81_64" >> $GITHUB_ENV
-        echo "CMAKE_PREFIX_PATH=/c/Qt/5.15.2/mingw81_64" >> $GITHUB_ENV
+        python -m pip install aqtinstall
+        python -m aqt install-qt windows desktop 5.15.2 win64_mingw81 -O C:\Qt
+        echo "C:\Qt\5.15.2\mingw81_64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "QTDIR=C:\Qt\5.15.2\mingw81_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "CMAKE_PREFIX_PATH=C:\Qt\5.15.2\mingw81_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Install dependencies
       run: ./ports/ci/windows-msys/install_deps.sh
     - name: Daily Build
