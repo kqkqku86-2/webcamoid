@@ -24,6 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: 9.1.1
         submodules: true
     - uses: msys2/setup-msys2@v2
       with:
